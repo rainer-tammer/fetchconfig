@@ -1,6 +1,35 @@
 fetchconfig -- Changes
 ======================
 
+9.74
+====
+
+Note: Several generic-model templates in ./templates are new - please test them
+against real hardware and let us know whether they work cleanly. The ones marked
+"# Note: DRAFT - please verify on real hardware." especially need confirmation;
+those marked "# Note: Verified on real hardware." have already been checked.
+
++ Generic template engine: new prompt_settle_ms, type_delay_ms and show_cmd
+  directives (plus "send show_cmd"), so templates reproduce the SSH-settle,
+  slow-typing and show-command options of the Perl models.
++ templates/: new generic-model templates derived from the existing CLI models
+  (all except mediant-sbc; web/SNMP models excluded). Each carries a "# Note:"
+  line marking it verified or draft; drafts need real-hardware confirmation.
++ generate_template.pl and contrib/windows/generate_template.py scaffold the two
+  timing directives as commented TODOs (they cannot be inferred from a capture).
++ Change-report / e-mail diff masking now covers the "password encrypted <hash>"
+  form (e.g. Zyxel): the hash is masked, the username and keywords kept.
++ Hirschmann: the re-salted "users passwd ... :v1:<hash>:" field no longer forces
+  a save every run - the salt is canonicalised before the changes_only compare
+  (keeping the password-derived prefix), so only a real password change is saved.
+  New generic-model template directive "canon /PATTERN/REPLACEMENT/" does the same.
++ Generic model: the "trying (generic template)" debug line now also names the
+  template (", model <name>"), so the log says which template a backup used.
++ Docs: each shipped template now has a state-machine diagram beside it
+  (templates/<name>.md/.html, Mermaid with an ASCII twin and a states table),
+  generated from the .tmpl by tools/gen-template-docs.pl (run by "make doc"),
+  indexed under "Model state machines" in README.template_engine.
+
 9.73
 ====
 

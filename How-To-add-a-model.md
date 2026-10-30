@@ -1,6 +1,6 @@
 # fetchconfig -- How to Add a Device Model
 
-*Programming manual for writing a new configuration extractor. Applies to fetchconfig 9.73.*
+*Programming manual for writing a new configuration extractor. Applies to fetchconfig 9.74.*
 
 ---
 

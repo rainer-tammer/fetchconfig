@@ -19,7 +19,7 @@ remain authoritative for their topics and are referenced from here:
 Where this guide found those documents lacking a detail an extender needs,
 that detail is added here and noted as such.
 
-Target version: 9.73. Perl floor: 5.26.
+Target version: 9.74. Perl floor: 5.26.
 
 ---
 

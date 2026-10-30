@@ -1254,6 +1254,61 @@ sub read_lines_ignoring {
     join('', @lines);
 }
 
+#
+# Same purpose as config_equal_ignoring_lines(), but CANONICALISES part of
+# each line before comparing, instead of dropping the whole line. For a field
+# a device re-serialises on every read where only PART is volatile (e.g. the
+# Hirschmann "users passwd <user> :v1:<prefix><salt>:" field, whose leading
+# 18 hex are password-derived and stable while the trailing hex is a random
+# salt): collapsing just the salt lets a real change (the prefix) still count,
+# where a plain ignore of the line would hide it. The SAVED backup is never
+# changed - only this in-memory comparison copy is.
+#
+# $canon is an arrayref of [ qr//, $replacement ] pairs applied with s///g to
+# each line (the replacement is LITERAL - no $1 backref interpolation, so use
+# look-behind/-ahead in the pattern). $ignore_re (optional) still drops whole
+# matching lines, applied after the canon rewrites.
+#
+sub config_equal_canon {
+    my ($self, $prev_dir, $prev_file, $curr_dir, $curr_file, $canon, $ignore_re) = @_;
+
+    my $prev_text = $self->read_lines_canon("$prev_dir/$prev_file", $canon, $ignore_re);
+    my $curr_text = $self->read_lines_canon("$curr_dir/$curr_file", $canon, $ignore_re);
+
+    # error reading either file: return false, in order to keep the newer version
+    return 0 unless (defined($prev_text) && defined($curr_text));
+
+    ($prev_text eq $curr_text);
+}
+
+sub read_lines_canon {
+    my ($self, $path, $canon, $ignore_re) = @_;
+
+    local *IN;
+
+    if (!open(IN, '<', $path)) {
+	$self->log_error("could not read for comparison: $path: $!");
+	return undef;
+    }
+
+    my @lines;
+    while (my $line = <IN>) {
+	for my $rule (@{ $canon || [] }) {
+	    my ($re, $rep) = @$rule;
+	    $line =~ s/$re/$rep/g;
+	}
+	next if defined($ignore_re) && $line =~ /$ignore_re/;
+	push @lines, $line;
+    }
+
+    if (!close(IN)) {
+	$self->log_error("could not close after comparison: $path: $!");
+	return undef;
+    }
+
+    join('', @lines);
+}
+
 sub prune_dir_tree {
     my ($self, $depth, $dir) = @_;
 
